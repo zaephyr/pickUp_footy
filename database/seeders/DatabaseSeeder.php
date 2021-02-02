@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Membership;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,6 +15,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+        $num = 15;
         // \App\Models\User::factory(10)->create();
+        User::factory($num)->create();
+
+        $users = User::all()->pluck('id')->toArray();
+        shuffle($users);
+
+        for ($i = 0; $i < $num; ++$i) {
+            $user_id = $users[$i];
+            Membership::create([
+                'user_id' => $user_id,
+                'team_id' => 1,
+            ]);
+        }
     }
 }

@@ -21,7 +21,6 @@ class JetstreamServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
     }
 
     /**
@@ -63,5 +62,10 @@ class JetstreamServiceProvider extends ServiceProvider
             'create',
             'update',
         ])->description(__('Editor users have the ability to read, create, and update.'));
+
+        Jetstream::role('member', __('Member'), [
+            'read',
+            'update',
+        ])->description(__('Members have the ability to read and update.'));
     }
 }
