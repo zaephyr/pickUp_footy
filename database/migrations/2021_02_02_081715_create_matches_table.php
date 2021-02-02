@@ -17,6 +17,7 @@ class CreateMatchesTable extends Migration
             $table->id();
             $table->foreignId('team_id')->references('id')->on('teams');
             $table->date('event_date');
+            $table->boolean('completed')->default(false);
             $table->string('participants')->nullable();
             $table->string('teamA')->nullable();
             $table->string('teamB')->nullable();

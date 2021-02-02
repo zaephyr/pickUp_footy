@@ -76,7 +76,7 @@ export default {
         },
         updateAttending(val) {
             if (this.currentTeamMember.attend != val) {
-                this.$inertia.post(
+                this.$inertia.put(
                     "/dashboard/",
                     {
                         attend: val

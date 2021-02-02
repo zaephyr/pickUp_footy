@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TeamSettingsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -27,5 +28,8 @@ Route::get('/', function () {
 
 Route::middleware(['auth:sanctum'])->get('/dashboard', [DashboardController::class, 'index']
 )->name('dashboard');
-Route::middleware(['auth:sanctum'])->post('/dashboard', [DashboardController::class, 'update']
+Route::middleware(['auth:sanctum'])->put('/dashboard', [DashboardController::class, 'update']
 )->name('dashboard.update');
+
+Route::middleware(['auth:sanctum'])->post('/teams/{team:id}', [TeamSettingsController::class, 'createUser']
+)->name('team.create.new_user');
