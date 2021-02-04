@@ -16,7 +16,7 @@ class CreateMatchesTable extends Migration
         Schema::create('matches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('team_id')->references('id')->on('teams');
-            $table->date('event_date');
+            $table->date('event_date')->nullable();
             $table->boolean('completed')->default(false);
             $table->string('participants')->nullable();
             $table->string('teamA')->nullable();

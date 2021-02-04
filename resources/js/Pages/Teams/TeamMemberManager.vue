@@ -3,6 +3,72 @@
         <div v-if="userPermissions.canAddTeamMembers">
             <jet-section-border />
 
+            <!-- Add new Match Event -->
+            <jet-form-section @submitted="createNewMatch">
+                <template #title>
+                    New Match
+                </template>
+
+                <template #description>
+                    Add new match event for your team.
+                </template>
+
+                <template #form>
+                    <div class="col-span-6">
+                        <div class="max-w-xl text-sm text-gray-600">
+                            Please provide starting date and time for this
+                            event.
+                        </div>
+                    </div>
+
+                    <!-- Event Date -->
+                    <div class="col-span-6 sm:col-span-4">
+                        <jet-label for="event" value="Event Date" />
+                        <jet-input
+                            id="event_date"
+                            type="datetime-local"
+                            class="mt-1 block w-full"
+                            v-model="addNewMatchEvent.date"
+                        />
+                        <jet-input-error
+                            :message="addNewMatchEvent.errors.date"
+                            class="mt-2"
+                        />
+                    </div>
+                </template>
+
+                <template #actions>
+                    <label class="flex items-center mr-auto">
+                        <jet-checkbox
+                            name="attend"
+                            v-model="addNewMatchEvent.attend"
+                        />
+                        <span class="ml-2 text-sm text-gray-600"
+                            >Attend this event</span
+                        >
+                    </label>
+                    <jet-action-message
+                        :on="addNewMatchEvent.recentlySuccessful"
+                        class="mr-3"
+                    >
+                        Added.
+                    </jet-action-message>
+
+                    <jet-button
+                        :class="{
+                            'opacity-25': addNewMatchEvent.processing
+                        }"
+                        :disabled="addNewMatchEvent.processing"
+                    >
+                        Add
+                    </jet-button>
+                </template>
+            </jet-form-section>
+        </div>
+
+        <div v-if="userPermissions.canAddTeamMembers">
+            <jet-section-border />
+
             <!-- Add Team Member -->
             <jet-form-section @submitted="addTeamMember">
                 <template #title>
@@ -601,6 +667,7 @@ import JetInputError from "@/Jetstream/InputError";
 import JetLabel from "@/Jetstream/Label";
 import JetSecondaryButton from "@/Jetstream/SecondaryButton";
 import JetSectionBorder from "@/Jetstream/SectionBorder";
+import JetCheckbox from "@/Jetstream/Checkbox";
 
 export default {
     components: {
@@ -615,13 +682,19 @@ export default {
         JetInputError,
         JetLabel,
         JetSecondaryButton,
-        JetSectionBorder
+        JetSectionBorder,
+        JetCheckbox
     },
 
     props: ["team", "availableRoles", "userPermissions"],
 
     data() {
         return {
+            addNewMatchEvent: this.$inertia.form({
+                date: "",
+                attend: false,
+                team: this.team.id
+            }),
             addTeamMemberForm: this.$inertia.form({
                 email: "",
                 role: null
@@ -649,6 +722,18 @@ export default {
         };
     },
     methods: {
+        createNewMatch() {
+            this.addNewMatchEvent.post(
+                route("team.create.new_match", this.team),
+                {
+                    errorBag: "createNewMatch",
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        this.addNewMatchEvent.reset();
+                    }
+                }
+            );
+        },
         addTeamMember() {
             this.addTeamMemberForm.post(
                 route("team-members.store", this.team),

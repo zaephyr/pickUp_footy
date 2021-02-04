@@ -58,13 +58,13 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-    public function currentMembership()
-    {
-        return $this->hasOneThrough(Membership::class, Team::class, 'user_id', 'team_id', 'id', 'id');
-    }
-
     public function memberships()
     {
-        return $this->hasMany(Membership::class);
+        return $this->hasMany(Membership::class, 'user_id');
+    }
+
+    public function currentMembership(Team $team)
+    {
+        return $this->memberships->where('team_id', $team->id)->first();
     }
 }

@@ -28,8 +28,12 @@ Route::get('/', function () {
 
 Route::middleware(['auth:sanctum'])->get('/dashboard', [DashboardController::class, 'index']
 )->name('dashboard');
-Route::middleware(['auth:sanctum'])->put('/dashboard', [DashboardController::class, 'update']
+Route::middleware(['auth:sanctum'])->put('/dashboard/{member:id}', [DashboardController::class, 'update']
 )->name('dashboard.update');
+Route::middleware(['auth:sanctum'])->put('/dashboard', [DashboardController::class, 'updateMass']
+)->name('dashboard.update.mass');
 
 Route::middleware(['auth:sanctum'])->post('/teams/{team:id}', [TeamSettingsController::class, 'createUser']
 )->name('team.create.new_user');
+Route::middleware(['auth:sanctum'])->post('/teams/{team:id}/match', [TeamSettingsController::class, 'createMatch']
+)->name('team.create.new_match');
