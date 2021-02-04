@@ -1,10 +1,43 @@
 <template>
     <app-layout>
-        <template #header class="sm:pl-20">
-            <span class="text-sm font-thin text-gray-400 ">Next match:</span>
-            <h2 class="font-semibold text-xl leading-tight text-gray-600">
-                {{ matchData.date }}
-            </h2>
+        <template #header class="sm:pl-20 ">
+            <div class="flex justify-between">
+                <div>
+                    <span class="text-sm font-thin text-gray-400 "
+                        >Next match:</span
+                    >
+                    <h2
+                        class="font-semibold text-xl leading-tight text-gray-600"
+                    >
+                        {{ matchData.date }}
+                    </h2>
+                </div>
+                <button
+                    @click="manageTeams"
+                    v-if="$page.props.hasRole.key != 'member'"
+                    class="bg-green-500 inline-flex items-center  border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray transition ease-in-out duration-150"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="icon icon-tabler icon-tabler-soccer-field"
+                        width="72"
+                        height="72"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="#ffffff"
+                        fill="none"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M3 9h3v6h-3z" />
+                        <path d="M18 9h3v6h-3z" />
+                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                    </svg>
+                </button>
+            </div>
         </template>
 
         <div class="py-12">
@@ -25,7 +58,8 @@
                 >
                     <div
                         v-for="(member, index) in members"
-                        :key="index"
+                        :key="member"
+                        class="selection-item"
                         :class="[
                             {
                                 'mb-4':
@@ -41,7 +75,7 @@
                     >
                         <span
                             :class="{
-                                ja: $page.props.hasRole.key == 'member',
+                                // ja: $page.props.hasRole.key == 'member',
                                 'text-green-500': member.attend == 1,
                                 'text-red-400': member.attend == -1
                             }"
@@ -75,23 +109,78 @@
                 </div>
             </div>
         </div>
+
+        <jet-dialog-modal :show="managingTeams" @close="managingTeams = false">
+            <template #title>
+                Manage Match Teams
+            </template>
+
+            <template #content>
+                <div class="flex flex-col items-center">
+                    <transition-group name="selection" tag="div">
+                        <div
+                            v-for="(member, index) in managedTeams"
+                            :key="member"
+                            class=" mt-1 px-4 border border-gray-300 rounded-lg cursor-pointer selection-item"
+                            :class="{
+                                'mb-4':
+                                    index ==
+                                    managedTeams
+                                        .map(el => el.team)
+                                        .lastIndexOf(true),
+                                'text-green-500': member.team
+                            }"
+                            @click="toggleTeam(index)"
+                        >
+                            {{ member.name }}
+                        </div>
+                    </transition-group>
+                </div>
+            </template>
+
+            <template #footer>
+                <jet-secondary-button @click.native="managingTeams = false">
+                    Nevermind
+                </jet-secondary-button>
+
+                <jet-button
+                    class="ml-2 mt-6 sm:mt-0"
+                    @click.native="makeTeamsAndStartMatch"
+                    :class="{ 'opacity-25': matchTeamForm.processing }"
+                    :disabled="matchTeamForm.processing"
+                >
+                    Confirm teams & Start Game
+                </jet-button>
+            </template>
+        </jet-dialog-modal>
     </app-layout>
 </template>
 
 <script>
 import AppLayout from "@/Layouts/AppLayout";
-import Welcome from "@/Jetstream/Welcome";
 import JetCheckbox from "@/Jetstream/Checkbox";
+import JetDialogModal from "@/Jetstream/DialogModal";
+import JetButton from "@/Jetstream/Button";
+import JetSecondaryButton from "@/Jetstream/SecondaryButton";
 
 export default {
     components: {
         AppLayout,
-        JetCheckbox
+        JetCheckbox,
+        JetDialogModal,
+        JetButton,
+        JetSecondaryButton
     },
     props: { members: Array, currentTeamMember: Object, matchData: Object },
     data() {
         return {
-            attending: []
+            attending: [],
+            managingTeams: false,
+            matchTeamForm: this.$inertia.form({
+                date: "",
+                attend: false
+            }),
+            managedTeams: []
         };
     },
     created() {
@@ -160,7 +249,27 @@ export default {
                     }
                 );
             }
-        }
+        },
+        manageTeams() {
+            this.managedTeams = this.members
+                .filter(el => el.attend == 1)
+                .map(el => {
+                    el.team = false;
+                    return el;
+                });
+            this.managingTeams = true;
+        },
+        toggleTeam(key) {
+            this.managedTeams[key].team = !this.managedTeams[key].team;
+            this.managedTeams.sort((a, b) => b.team - a.team);
+        },
+        makeTeamsAndStartMatch() {}
     }
 };
 </script>
+
+<style>
+.selection-move {
+    transition: all 1s;
+}
+</style>
