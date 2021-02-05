@@ -1,7 +1,7 @@
 <template>
     <app-layout>
         <template #header class="sm:pl-20 ">
-            <div class="flex justify-between">
+            <div class="flex justify-between" v-if="!!members">
                 <div>
                     <span class="text-sm font-thin text-gray-400 "
                         >Next match:</span
@@ -38,9 +38,10 @@
                     </svg>
                 </button>
             </div>
+            <div v-else>Dashboard</div>
         </template>
 
-        <div class="py-12">
+        <div class="py-12" v-if="!!members">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div
                     class="flex justify-center mb-4"
@@ -58,7 +59,7 @@
                 >
                     <div
                         v-for="(member, index) in members"
-                        :key="member"
+                        :key="member.id"
                         class="selection-item"
                         :class="[
                             {
@@ -120,15 +121,15 @@
                     <transition-group name="selection" tag="div">
                         <div
                             v-for="(member, index) in managedTeams"
-                            :key="member"
+                            :key="member.id"
                             class=" mt-1 px-4 border border-gray-300 rounded-lg cursor-pointer selection-item"
                             :class="{
                                 'mb-4':
                                     index ==
                                     managedTeams
-                                        .map(el => el.team)
+                                        .map(el => el.squad)
                                         .lastIndexOf(true),
-                                'text-green-500': member.team
+                                'text-green-500': member.squad
                             }"
                             @click="toggleTeam(index)"
                         >
@@ -146,8 +147,8 @@
                 <jet-button
                     class="ml-2 mt-6 sm:mt-0"
                     @click.native="makeTeamsAndStartMatch"
-                    :class="{ 'opacity-25': matchTeamForm.processing }"
-                    :disabled="matchTeamForm.processing"
+                    :class="{ 'opacity-25': matchSquadForm.processing }"
+                    :disabled="matchSquadForm.processing"
                 >
                     Confirm teams & Start Game
                 </jet-button>
@@ -176,9 +177,8 @@ export default {
         return {
             attending: [],
             managingTeams: false,
-            matchTeamForm: this.$inertia.form({
-                date: "",
-                attend: false
+            matchSquadForm: this.$inertia.form({
+                date: ""
             }),
             managedTeams: []
         };
@@ -254,16 +254,33 @@ export default {
             this.managedTeams = this.members
                 .filter(el => el.attend == 1)
                 .map(el => {
-                    el.team = false;
+                    el.squad = false;
                     return el;
                 });
             this.managingTeams = true;
         },
         toggleTeam(key) {
-            this.managedTeams[key].team = !this.managedTeams[key].team;
-            this.managedTeams.sort((a, b) => b.team - a.team);
+            this.managedTeams[key].squad = !this.managedTeams[key].squad;
+            this.managedTeams.sort((a, b) => b.squad - a.squad);
         },
-        makeTeamsAndStartMatch() {}
+        makeTeamsAndStartMatch() {
+            this.$inertia.post(
+                route("match.squads", this.$page.props.matchData.id),
+                {
+                    managedTeams: this.managedTeams
+                },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        this.cleanData();
+                    },
+                    onError: errors => {
+                        console.log(errors);
+                    }
+                }
+            );
+            this.managingTeams = false;
+        }
     }
 };
 </script>

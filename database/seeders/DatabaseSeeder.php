@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $num = 15;
+        $num = 11;
         // \App\Models\User::factory(10)->create();
         User::factory($num)->create();
 

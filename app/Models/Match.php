@@ -9,20 +9,21 @@ class Match extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['team_id', 'event_date', 'completed', 'participants', 'teamA', 'teamB', 'score'];
+    protected $fillable = ['team_id', 'event_date', 'completed'];
 
     public function team()
     {
         return $this->belongsTo(Team::class);
     }
 
-    public function matchSquads()
+    public function users()
     {
-        return $this->hasMany(MatchSquad::class);
+        return $this->belongsToMany(User::class, 'match_user', 'match_id', 'user_id')->withPivot(['id', 'squad'])
+        ->as('participant');
     }
 
-    public function playingTeams()
+    public function squad($num)
     {
-        return $this->hasManyThrough(PlayingTeam::class, MatchSquad::class, 'match_id', 'match_squad_id', 'id', 'id');
+        return $this->users->where('participant.squad', $num);
     }
 }

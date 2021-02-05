@@ -67,4 +67,9 @@ class User extends Authenticatable
     {
         return $this->memberships->where('team_id', $team->id)->first();
     }
+
+    public function matches()
+    {
+        return $this->hasMany(MatchUser::class, 'user_id');
+    }
 }

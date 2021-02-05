@@ -16,13 +16,26 @@ class DashboardController extends Controller
         $team = $request->user()->currentTeam;
         $members = $team->users;
         // $currentMembership = $userNow->memberships->where('team_id', '=', $userNow->current_team_id)->first();
-        $match = $team->matches->where('completed', 0)->last();
+
+        $match = $team->matches;
+
+        if ($match->count() == 0) {
+            return Inertia::render('Dashboard', [
+                'matchData' => ['id' => 0, 'date' => 'none'],
+                'currentTeamMember' => 0,
+                'members' => 0,
+            ]);
+        }
+
+        $match = $match->where('completed', 0)->first();
+
         $dt = $match->event_date;
+
         $match->event_date = Carbon::createFromFormat('Y-m-d', $dt)->diffForHumans();
 
         return Inertia::render('Dashboard', [
-            'matchData' => ['id' => $match->id, 'date' => $match->event_date],
-            'currentTeamMember' => $userNow->currentMembership($team),
+            'matchData' => ['id' => $match->id ?? 0, 'date' => $match->event_date ?? 0],
+            'currentTeamMember' => $userNow->currentMembership($team) ?? 0,
             'members' => $members->map(function ($user) {
                 return [
                     'id' => $user->id,

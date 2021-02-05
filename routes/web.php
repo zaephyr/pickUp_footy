@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MatchController;
 use App\Http\Controllers\TeamSettingsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,11 @@ Route::middleware(['auth:sanctum'])->put('/dashboard/{member:id}', [DashboardCon
 )->name('dashboard.update');
 Route::middleware(['auth:sanctum'])->put('/dashboard', [DashboardController::class, 'updateMass']
 )->name('dashboard.update.mass');
+
+Route::middleware(['auth:sanctum'])->get('/match/{match:id}', [MatchController::class, 'index']
+)->name('match');
+Route::middleware(['auth:sanctum'])->post('/match/{match:id}', [MatchController::class, 'createSquads']
+)->name('match.squads');
 
 Route::middleware(['auth:sanctum'])->post('/teams/{team:id}', [TeamSettingsController::class, 'createUser']
 )->name('team.create.new_user');
