@@ -692,8 +692,7 @@ export default {
         return {
             addNewMatchEvent: this.$inertia.form({
                 date: "",
-                attend: false,
-                team: this.team.id
+                attend: false
             }),
             addTeamMemberForm: this.$inertia.form({
                 email: "",
@@ -704,7 +703,6 @@ export default {
                 email: "",
                 password: "",
                 password_confirmation: "",
-                team: this.team.id,
                 role: null
             }),
 

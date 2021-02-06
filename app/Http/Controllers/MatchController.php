@@ -27,11 +27,9 @@ class MatchController extends Controller
             $player = (object) $player;
             $user = User::find($player->id);
 
-            if ($player->squad) {
-                $match->users()->attach($user, ['squad' => 1]);
-            } else {
-                $match->users()->attach($user, ['squad' => 0]);
-            }
+            $num = ($player->squad) ? 1 : 0;
+
+            $match->users()->attach($user, ['squad' => $num]);
         }
 
         return redirect()->back()->with('message', 'Squads Created Successfully.');

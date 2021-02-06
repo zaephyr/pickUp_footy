@@ -203,7 +203,6 @@ export default {
                     };
                     return param;
                 });
-            console.log(membersToUpdate);
             this.$inertia.put(
                 route("dashboard.update.mass"),
                 {

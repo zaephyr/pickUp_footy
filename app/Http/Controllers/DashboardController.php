@@ -48,17 +48,14 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function update(Membership $membership, Request $request)
     {
         Validator::make($request->all(), [
             'attend' => ['required'],
         ])->validate();
 
-        $member = $request->user();
-        $team = $request->user()->currentTeam;
-        $currentMembership = $member->currentMembership($team);
-        $currentMembership->attend = $request->attend;
-        $currentMembership->update();
+        $membership->attend = $request->attend;
+        $membership->update();
 
         return redirect()->back()
                     ->with('message', 'Attend Updated Successfully.');
