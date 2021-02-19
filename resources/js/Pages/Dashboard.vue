@@ -13,7 +13,7 @@
                     </h2>
                 </div>
                 <button
-                    @click="manageTeams"
+                    @click="manageSquads"
                     v-if="$page.props.hasRole.key != 'member'"
                     class="bg-green-500 inline-flex items-center  border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray transition ease-in-out duration-150"
                 >
@@ -111,27 +111,44 @@
             </div>
         </div>
 
-        <jet-dialog-modal :show="managingTeams" @close="managingTeams = false">
-            <template #title>
-                Manage Match Teams
+        <jet-dialog-modal
+            :show="managingSquads"
+            @close="managingSquads = false"
+        >
+            <template #title class="flex justify-between">
+                <div class="flex justify-between">
+                    <span> Manage Match Squads</span
+                    ><span
+                        >{{
+                            managedSquadsNotSaved.filter(el => el.squad == true)
+                                .length
+                        }}
+                        vs
+                        {{
+                            managedSquadsNotSaved.filter(
+                                el => el.squad == false
+                            ).length
+                        }}
+                    </span>
+                </div>
             </template>
 
             <template #content>
                 <div class="flex flex-col items-center">
                     <transition-group name="selection" tag="div">
                         <div
-                            v-for="(member, index) in managedTeams"
+                            v-for="(member, index) in managedSquadsNotSaved"
                             :key="member.id"
-                            class=" mt-1 px-4 border border-gray-300 rounded-lg cursor-pointer selection-item"
+                            class=" text-center mt-1 px-4 border border-gray-300 rounded-lg cursor-pointer selection-item"
                             :class="{
                                 'mb-4':
                                     index ==
-                                    managedTeams
+                                    managedSquadsNotSaved
                                         .map(el => el.squad)
                                         .lastIndexOf(true),
                                 'text-green-500': member.squad
                             }"
-                            @click="toggleTeam(index)"
+                            @click="toggleSquad(index)"
                         >
                             {{ member.name }}
                         </div>
@@ -140,17 +157,17 @@
             </template>
 
             <template #footer>
-                <jet-secondary-button @click.native="managingTeams = false">
+                <jet-secondary-button @click.native="managingSquads = false">
                     Nevermind
                 </jet-secondary-button>
 
                 <jet-button
                     class="ml-2 mt-6 sm:mt-0"
-                    @click.native="makeTeamsAndStartMatch"
+                    @click.native="makeSquadsAndStartMatch"
                     :class="{ 'opacity-25': matchSquadForm.processing }"
                     :disabled="matchSquadForm.processing"
                 >
-                    Confirm teams & Start Game
+                    Confirm squads & Start Game
                 </jet-button>
             </template>
         </jet-dialog-modal>
@@ -176,15 +193,16 @@ export default {
     data() {
         return {
             attending: [],
-            managingTeams: false,
+            managingSquads: false,
             matchSquadForm: this.$inertia.form({
                 date: ""
             }),
-            managedTeams: []
+            managedSquadsNotSaved: []
         };
     },
     created() {
         this.cleanData();
+        this.matchData.managedSquads.sort((a, b) => b.squad - a.squad);
     },
 
     methods: {
@@ -229,6 +247,14 @@ export default {
                 };
                 return member;
             });
+            this.matchData.managedSquads = this.members
+                .filter(el => el.attend == 1)
+                .map(el => {
+                    console.log(el.squad);
+                    el.squad = el.squad ?? false;
+                    return el;
+                })
+                .sort((a, b) => b.squad - a.squad);
         },
         updateAttending(val) {
             if (this.currentTeamMember.attend != val) {
@@ -249,24 +275,34 @@ export default {
                 );
             }
         },
-        manageTeams() {
-            this.managedTeams = this.members
-                .filter(el => el.attend == 1)
-                .map(el => {
-                    el.squad = false;
-                    return el;
-                });
-            this.managingTeams = true;
+        manageSquads() {
+            if (this.matchData.managedSquads.length == 0) {
+                this.matchData.managedSquads = this.members
+                    .filter(el => el.attend == 1)
+                    .map(el => {
+                        el.squad = false;
+                        return el;
+                    });
+            }
+            //Making deep copy, ie no references
+            this.managedSquadsNotSaved = JSON.parse(
+                JSON.stringify(this.matchData.managedSquads)
+            );
+
+            this.managingSquads = true;
         },
-        toggleTeam(key) {
-            this.managedTeams[key].squad = !this.managedTeams[key].squad;
-            this.managedTeams.sort((a, b) => b.squad - a.squad);
+        toggleSquad(key) {
+            this.managedSquadsNotSaved[key].squad = !this.managedSquadsNotSaved[
+                key
+            ].squad;
+            this.managedSquadsNotSaved.sort((a, b) => b.squad - a.squad);
         },
-        makeTeamsAndStartMatch() {
+        makeSquadsAndStartMatch() {
+            this.matchData.managedSquads = this.managedSquadsNotSaved;
             this.$inertia.post(
-                route("match.squads", this.$page.props.matchData.id),
+                route("match.squads", this.matchData.match_id),
                 {
-                    managedTeams: this.managedTeams
+                    managedSquads: this.matchData.managedSquads
                 },
                 {
                     preserveScroll: true,
@@ -278,7 +314,7 @@ export default {
                     }
                 }
             );
-            this.managingTeams = false;
+            this.managingSquads = false;
         }
     }
 };

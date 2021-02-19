@@ -14,7 +14,7 @@ class MatchController extends Controller
         $squadGreen = array_values($match->squad(1)->all());
         $squadOrange = array_values($match->squad(0)->all());
 
-        return Inertia::render('Match', [
+        return Inertia::render('Match/Match', [
             'matchData' => ['id' => $match->id, 'date' => $match->event_date],
             'squadGreen' => $squadGreen,
             'squadOrange' => $squadOrange,
@@ -23,15 +23,25 @@ class MatchController extends Controller
 
     public function createSquads(Match $match, Request $request)
     {
-        foreach ($request->managedTeams as $player) {
+        $user = $request->user();
+        $team = $user->currentTeam;
+
+        if (!$user->hasTeamPermission($team, 'create')) {
+            abort(401);
+        }
+
+        foreach ($request->managedSquads as $player) {
             $player = (object) $player;
             $user = User::find($player->id);
 
             $num = ($player->squad) ? 1 : 0;
 
-            $match->users()->attach($user, ['squad' => $num]);
+            $updated = $match->users()->updateExistingPivot($user, ['squad' => $num]);
+            if ($updated == 0) {
+                $match->users()->attach($user, ['squad' => $num]);
+            }
         }
 
-        return redirect()->back()->with('message', 'Squads Created Successfully.');
+        return redirect()->route('match', $match);
     }
 }
